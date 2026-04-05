@@ -56,6 +56,23 @@ export const translations = {
     onDevice: 'On device',
     noVoicesFound: 'No voices found',
     current: 'Current',
+
+    // AI Generator
+    generateWithAI: 'Create with AI',
+    generatePromptLabel: 'What is this story about?',
+    generatePromptPlaceholder: 'e.g. Going to the supermarket',
+    examplePrompts: 'Examples',
+    generateScenes: 'Number of scenes',
+    generateButton: 'Create Story',
+    generatingText: 'Writing the story…',
+    generatingTextSub: 'Creating simple sentences for each scene',
+    generatingImages: 'Drawing the pictures…',
+    imagesReady: 'images ready',
+    generatedStory: 'Generated Story',
+    noImage: 'No image',
+    tryAgain: '↺ Try Again',
+    saveToLibrary: 'Save to Library',
+    generationFailed: 'Could not create the story. Please try again.',
   },
 
   es: {
@@ -109,6 +126,23 @@ export const translations = {
     onDevice: 'En dispositivo',
     noVoicesFound: 'No se encontraron voces',
     current: 'Actual',
+
+    // AI Generator
+    generateWithAI: 'Crear con IA',
+    generatePromptLabel: '¿De qué trata esta historia?',
+    generatePromptPlaceholder: 'Ej. Ir al supermercado',
+    examplePrompts: 'Ejemplos',
+    generateScenes: 'Número de escenas',
+    generateButton: 'Crear Historia',
+    generatingText: 'Escribiendo la historia…',
+    generatingTextSub: 'Creando oraciones simples para cada escena',
+    generatingImages: 'Dibujando las imágenes…',
+    imagesReady: 'imágenes listas',
+    generatedStory: 'Historia Generada',
+    noImage: 'Sin imagen',
+    tryAgain: '↺ Intentar de nuevo',
+    saveToLibrary: 'Guardar en Biblioteca',
+    generationFailed: 'No se pudo crear la historia. Por favor intenta de nuevo.',
   },
 
   'pt-BR': {
@@ -162,6 +196,23 @@ export const translations = {
     onDevice: 'No dispositivo',
     noVoicesFound: 'Nenhuma voz encontrada',
     current: 'Atual',
+
+    // AI Generator
+    generateWithAI: 'Criar com IA',
+    generatePromptLabel: 'Sobre o que é esta história?',
+    generatePromptPlaceholder: 'Ex. Ir ao supermercado',
+    examplePrompts: 'Exemplos',
+    generateScenes: 'Número de cenas',
+    generateButton: 'Criar História',
+    generatingText: 'Escrevendo a história…',
+    generatingTextSub: 'Criando frases simples para cada cena',
+    generatingImages: 'Desenhando as imagens…',
+    imagesReady: 'imagens prontas',
+    generatedStory: 'História Gerada',
+    noImage: 'Sem imagem',
+    tryAgain: '↺ Tentar novamente',
+    saveToLibrary: 'Salvar na Biblioteca',
+    generationFailed: 'Não foi possível criar a história. Por favor tente novamente.',
   },
 }
 

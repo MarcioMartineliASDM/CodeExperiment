@@ -4,7 +4,7 @@ import { useTranslatedStoryList } from '../hooks/useTranslate'
 
 const EMOJIS = ['📖', '🌟', '🏠', '🏫', '🦷', '🤲', '🛒', '🍽️', '🚌', '🛁', '😴', '👨‍⚕️', '🎉', '🐶', '🌈']
 
-export function StoryList({ stories, onOpen, onView, onCreate, onDelete, lang, onChangeLang, t }) {
+export function StoryList({ stories, onOpen, onView, onCreate, onDelete, onGenerate, lang, onChangeLang, t }) {
   const { translatedStories, translating } = useTranslatedStoryList(stories, lang)
   const [showNew, setShowNew] = useState(false)
   const [title, setTitle] = useState('')
@@ -47,14 +47,20 @@ export function StoryList({ stories, onOpen, onView, onCreate, onDelete, lang, o
         <p className="text-gray-500 mt-1">{t('appSubtitle')}</p>
       </header>
 
-      {/* New Story Button */}
+      {/* Buttons */}
       {!showNew && (
-        <div className="flex justify-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 mb-6">
           <button
             onClick={() => setShowNew(true)}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-lg transition-all active:scale-95"
+            className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-lg transition-all active:scale-95"
           >
             {t('newStory')}
+          </button>
+          <button
+            onClick={onGenerate}
+            className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-2xl text-xl shadow-lg transition-all active:scale-95"
+          >
+            ✨ {t('generateWithAI')}
           </button>
         </div>
       )}
