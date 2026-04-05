@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { generateStory, fetchImageAsDataUrl } from '../services/ai'
+import { generateStory, buildImageUrl } from '../services/ai'
 
 const SCENE_OPTIONS = [3, 4, 5, 6, 7]
 
@@ -33,22 +33,15 @@ export function StoryGenerator({ lang, t, onBack, onSave }) {
       return
     }
 
-    // Generate images for each scene in parallel
+    // Build image URLs — Pollinations generates them on demand, no fetch needed
     setStep('generating-images')
-    setProgress({ done: 0, total: story.scenes.length })
+    setProgress({ done: story.scenes.length, total: story.scenes.length })
 
-    const scenesWithImages = await Promise.all(
-      story.scenes.map(async (scene, i) => {
-        try {
-          const imageUrl = await fetchImageAsDataUrl(scene.imagePrompt ?? scene.text)
-          setProgress(p => ({ ...p, done: p.done + 1 }))
-          return { ...scene, imageUrl, imageAlt: scene.imagePrompt ?? scene.text }
-        } catch {
-          setProgress(p => ({ ...p, done: p.done + 1 }))
-          return { ...scene, imageUrl: null, imageAlt: '' }
-        }
-      })
-    )
+    const scenesWithImages = story.scenes.map(scene => ({
+      ...scene,
+      imageUrl: buildImageUrl(scene.imagePrompt ?? scene.text),
+      imageAlt: scene.imagePrompt ?? scene.text,
+    }))
 
     setDraft({ ...story, scenes: scenesWithImages })
     setStep('preview')
@@ -190,11 +183,15 @@ export function StoryGenerator({ lang, t, onBack, onSave }) {
             {draft.scenes.map((scene, i) => (
               <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden">
                 {scene.imageUrl ? (
-                  <img
-                    src={scene.imageUrl}
-                    alt={scene.imageAlt}
-                    className="w-full h-52 object-cover"
-                  />
+                  <div className="relative w-full h-52 bg-orange-50">
+                    <div className="absolute inset-0 animate-pulse bg-orange-100" />
+                    <img
+                      src={scene.imageUrl}
+                      alt={scene.imageAlt}
+                      className="relative w-full h-52 object-cover"
+                      onLoad={e => e.target.previousSibling.remove()}
+                    />
+                  </div>
                 ) : (
                   <div className="h-32 bg-orange-50 flex items-center justify-center text-gray-300 text-sm">
                     {t('noImage')}
