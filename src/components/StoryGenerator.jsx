@@ -1,25 +1,34 @@
 import { useState } from 'react'
 import { generateStory, buildImageUrl } from '../services/ai'
 
-function GeneratorSceneImage({ src, alt }) {
-  const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState(false)
-  const [key, setKey] = useState(0)
+const IMAGE_TIMEOUT_MS = 20000
+
+function GeneratorSceneImage({ src: baseSrc, alt }) {
+  const [status, setStatus] = useState('loading')
+  const [attempt, setAttempt] = useState(0)
+  const src = `${baseSrc}${baseSrc.includes('?') ? '&' : '?'}_a=${attempt}`
+
+  useEffect(() => {
+    setStatus('loading')
+    const t = setTimeout(() => setStatus('error'), IMAGE_TIMEOUT_MS)
+    return () => clearTimeout(t)
+  }, [attempt])
+
   return (
     <div className="relative w-full h-52 bg-orange-50">
-      {!loaded && !error && <div className="absolute inset-0 animate-pulse bg-orange-100 flex items-center justify-center text-3xl opacity-30">🎨</div>}
-      {error && (
+      {status === 'loading' && <div className="absolute inset-0 animate-pulse bg-orange-100 flex items-center justify-center text-3xl opacity-30">🎨</div>}
+      {status === 'error' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
           <span className="text-3xl">🖼️</span>
-          <button onClick={() => { setError(false); setLoaded(false); setKey(k => k + 1) }}
-            className="text-sm bg-orange-100 hover:bg-orange-200 text-orange-700 px-3 py-1.5 rounded-xl font-semibold">
+          <button onClick={() => setAttempt(a => a + 1)}
+            className="text-sm bg-orange-100 hover:bg-orange-200 text-orange-700 px-3 py-1.5 rounded-xl font-semibold active:scale-95">
             ↺ Retry
           </button>
         </div>
       )}
-      <img key={key} src={src} alt={alt}
-        onLoad={() => setLoaded(true)} onError={() => setError(true)}
-        className={`w-full h-52 object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+      <img key={src} src={src} alt={alt}
+        onLoad={() => setStatus('loaded')} onError={() => setStatus('error')}
+        className={`w-full h-52 object-cover transition-opacity duration-500 ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
       />
     </div>
   )

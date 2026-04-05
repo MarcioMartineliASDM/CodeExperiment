@@ -1,16 +1,24 @@
 import { useState, useEffect } from 'react'
 import { useSpeech, AI_VOICES } from '../hooks/useSpeech'
 
-// Handles loading shimmer, error state and retry for a single scene image
-function SceneImage({ imageUrl, imageAlt, emoji }) {
-  const [status, setStatus] = useState('loading')
-  const [src, setSrc] = useState(imageUrl)
+const IMAGE_TIMEOUT_MS = 20000
 
-  function retry() {
-    // Cache-bust by appending a timestamp
+// Handles loading shimmer, 20s timeout, error state and retry
+function SceneImage({ imageUrl, imageAlt, emoji }) {
+  const [status, setStatus] = useState('loading') // loading | loaded | error
+  const [attempt, setAttempt] = useState(0)
+
+  // Build a cache-busted src on each retry attempt
+  const src = imageUrl
+    ? `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}_a=${attempt}`
+    : null
+
+  useEffect(() => {
+    if (!src) return
     setStatus('loading')
-    setSrc(`${imageUrl}${imageUrl.includes('?') ? '&' : '?'}_r=${Date.now()}`)
-  }
+    const timer = setTimeout(() => setStatus('error'), IMAGE_TIMEOUT_MS)
+    return () => clearTimeout(timer)
+  }, [src])
 
   if (!imageUrl) {
     return (
@@ -21,18 +29,18 @@ function SceneImage({ imageUrl, imageAlt, emoji }) {
   }
 
   return (
-    <div className="relative bg-gray-100 min-h-48">
+    <div className="relative bg-purple-50 min-h-48">
       {status === 'loading' && (
-        <div className="absolute inset-0 bg-purple-50 animate-pulse flex items-center justify-center">
-          <span className="text-4xl opacity-30">🎨</span>
+        <div className="absolute inset-0 animate-pulse bg-purple-100 flex items-center justify-center">
+          <span className="text-5xl opacity-20">🎨</span>
         </div>
       )}
       {status === 'error' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gray-50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-50">
           <span className="text-4xl">🖼️</span>
           <button
-            onClick={retry}
-            className="text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold px-4 py-2 rounded-xl transition-all"
+            onClick={() => setAttempt(a => a + 1)}
+            className="text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold px-4 py-2 rounded-xl transition-all active:scale-95"
           >
             ↺ Retry image
           </button>
@@ -44,7 +52,7 @@ function SceneImage({ imageUrl, imageAlt, emoji }) {
         alt={imageAlt || 'Scene image'}
         onLoad={() => setStatus('loaded')}
         onError={() => setStatus('error')}
-        className={`w-full max-h-72 object-contain transition-opacity duration-300 ${status === 'loaded' ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
+        className={`w-full max-h-72 object-contain transition-opacity duration-500 ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
       />
     </div>
   )
