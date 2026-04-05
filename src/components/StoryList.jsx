@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { LANGUAGES } from '../i18n'
+import { useTranslatedStoryList } from '../hooks/useTranslate'
 
 const EMOJIS = ['📖', '🌟', '🏠', '🏫', '🦷', '🤲', '🛒', '🍽️', '🚌', '🛁', '😴', '👨‍⚕️', '🎉', '🐶', '🌈']
 
 export function StoryList({ stories, onOpen, onView, onCreate, onDelete, lang, onChangeLang, t }) {
+  const { translatedStories, translating } = useTranslatedStoryList(stories, lang)
   const [showNew, setShowNew] = useState(false)
   const [title, setTitle] = useState('')
   const [emoji, setEmoji] = useState('📖')
@@ -116,7 +118,7 @@ export function StoryList({ stories, onOpen, onView, onCreate, onDelete, lang, o
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-          {stories.map(story => (
+          {translatedStories.map(story => (
             <div
               key={story.id}
               className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow"

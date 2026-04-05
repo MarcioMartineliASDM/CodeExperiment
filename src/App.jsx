@@ -1,9 +1,24 @@
 import { useState } from 'react'
 import { useStories } from './hooks/useStories'
 import { useLanguage } from './hooks/useLanguage'
+import { useTranslatedStory } from './hooks/useTranslate'
 import { StoryList } from './components/StoryList'
 import { StoryEditor } from './components/StoryEditor'
 import { StoryViewer } from './components/StoryViewer'
+
+// Thin wrapper that translates a single story before handing it to the viewer
+function TranslatedViewer({ story, lang, onBack, onEdit, t }) {
+  const { translatedStory, translating } = useTranslatedStory(story, lang)
+  return (
+    <StoryViewer
+      story={translatedStory}
+      translating={translating}
+      onBack={onBack}
+      onEdit={onEdit}
+      t={t}
+    />
+  )
+}
 
 function App() {
   const [screen, setScreen] = useState('list')
@@ -62,8 +77,9 @@ function App() {
 
   if (screen === 'view' && activeStory) {
     return (
-      <StoryViewer
+      <TranslatedViewer
         story={activeStory}
+        lang={lang}
         onBack={handleBack}
         onEdit={() => setScreen('edit')}
         t={t}

@@ -86,7 +86,7 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose, t }) {
   )
 }
 
-export function StoryViewer({ story, onBack, onEdit, t }) {
+export function StoryViewer({ story, translating = false, onBack, onEdit, t }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [autoPlay, setAutoPlay] = useState(false)
   const [showVoicePicker, setShowVoicePicker] = useState(false)
@@ -213,7 +213,16 @@ export function StoryViewer({ story, onBack, onEdit, t }) {
           )}
 
           <div className="p-6 text-center">
-            {scene?.text ? (
+            {translating ? (
+              <div className="flex flex-col items-center gap-2 text-purple-400">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
+                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
+                  <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
+                </div>
+                <p className="text-sm">Translating…</p>
+              </div>
+            ) : scene?.text ? (
               <p className="text-2xl font-semibold text-gray-800 leading-relaxed">{scene.text}</p>
             ) : (
               <p className="text-xl text-gray-300 italic">{t('noTextForScene')}</p>
