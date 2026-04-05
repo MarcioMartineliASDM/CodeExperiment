@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSpeech } from '../hooks/useSpeech'
 
-function VoicePicker({ voices, selectedVoice, onSelect, onClose }) {
+function VoicePicker({ voices, selectedVoice, onSelect, onClose, t }) {
   const [search, setSearch] = useState('')
 
   const filtered = voices.filter(v =>
@@ -9,7 +9,6 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose }) {
     v.lang.toLowerCase().includes(search.toLowerCase())
   )
 
-  // Group by language
   const grouped = filtered.reduce((acc, v) => {
     const lang = v.lang.split('-')[0].toUpperCase()
     if (!acc[lang]) acc[lang] = []
@@ -25,13 +24,13 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose }) {
       >
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-gray-800">Choose a Voice</h2>
+            <h2 className="text-lg font-bold text-gray-800">{t('chooseVoice')}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
           </div>
           <input
             autoFocus
             type="text"
-            placeholder="Search voices..."
+            placeholder={t('searchVoices')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
@@ -39,15 +38,16 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose }) {
         </div>
 
         <div className="overflow-y-auto flex-1 p-3">
-          {/* Default option */}
           <button
             onClick={() => { onSelect(''); onClose() }}
             className={`w-full text-left px-4 py-3 rounded-xl mb-1 font-medium transition-colors ${
               selectedVoice === '' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100 text-gray-600'
             }`}
           >
-            🔊 Default Voice
-            {selectedVoice === '' && <span className="ml-2 text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full">Current</span>}
+            🔊 {t('defaultVoice')}
+            {selectedVoice === '' && (
+              <span className="ml-2 text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full">{t('current')}</span>
+            )}
           </button>
 
           {Object.entries(grouped).sort().map(([lang, langVoices]) => (
@@ -67,7 +67,7 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose }) {
                     <div>
                       <span className="text-sm">{voice.name}</span>
                       {voice.localService && (
-                        <span className="ml-2 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">On device</span>
+                        <span className="ml-2 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">{t('onDevice')}</span>
                       )}
                     </div>
                     {selectedVoice === voice.name && <span className="text-purple-500">✓</span>}
@@ -78,7 +78,7 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose }) {
           ))}
 
           {filtered.length === 0 && (
-            <p className="text-center text-gray-400 py-8">No voices found</p>
+            <p className="text-center text-gray-400 py-8">{t('noVoicesFound')}</p>
           )}
         </div>
       </div>
@@ -86,7 +86,7 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose }) {
   )
 }
 
-export function StoryViewer({ story, onBack, onEdit }) {
+export function StoryViewer({ story, onBack, onEdit, t }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [autoPlay, setAutoPlay] = useState(false)
   const [showVoicePicker, setShowVoicePicker] = useState(false)
@@ -149,7 +149,7 @@ export function StoryViewer({ story, onBack, onEdit }) {
 
   const currentVoiceName = selectedVoice
     ? voices.find(v => v.name === selectedVoice)?.name?.split(' ')[0] ?? 'Custom'
-    : 'Default'
+    : t('defaultVoice').split(' ')[0]
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-100 to-purple-100 flex flex-col">
@@ -159,7 +159,7 @@ export function StoryViewer({ story, onBack, onEdit }) {
           onClick={() => { stop(); setAutoPlay(false); onBack() }}
           className="bg-gray-100 hover:bg-gray-200 rounded-xl px-4 py-2 font-semibold text-gray-600 transition-all"
         >
-          ← Back
+          {t('back')}
         </button>
         <div className="flex items-center gap-2">
           <span className="text-xl">{story.emoji}</span>
@@ -169,7 +169,7 @@ export function StoryViewer({ story, onBack, onEdit }) {
           onClick={() => { stop(); setAutoPlay(false); onEdit() }}
           className="bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl px-4 py-2 font-semibold transition-all text-sm"
         >
-          ✏️ Edit
+          ✏️ {t('edit')}
         </button>
       </div>
 
@@ -186,20 +186,18 @@ export function StoryViewer({ story, onBack, onEdit }) {
                 ? 'w-3 h-3 bg-purple-300'
                 : 'w-3 h-3 bg-gray-300'
             }`}
-            aria-label={`Go to scene ${i + 1}`}
+            aria-label={`${i + 1}`}
           />
         ))}
       </div>
 
-      {/* Scene counter */}
       <div className="text-center text-sm text-gray-500 font-medium">
-        {currentIndex + 1} of {story.scenes.length}
+        {currentIndex + 1} / {story.scenes.length}
       </div>
 
       {/* Main Scene */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 gap-6">
         <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden">
-          {/* Image */}
           {scene?.imageUrl ? (
             <div className="bg-gray-50">
               <img
@@ -214,18 +212,14 @@ export function StoryViewer({ story, onBack, onEdit }) {
             </div>
           )}
 
-          {/* Text */}
           <div className="p-6 text-center">
             {scene?.text ? (
-              <p className="text-2xl font-semibold text-gray-800 leading-relaxed">
-                {scene.text}
-              </p>
+              <p className="text-2xl font-semibold text-gray-800 leading-relaxed">{scene.text}</p>
             ) : (
-              <p className="text-xl text-gray-300 italic">No text for this scene</p>
+              <p className="text-xl text-gray-300 italic">{t('noTextForScene')}</p>
             )}
           </div>
 
-          {/* Read aloud + voice picker */}
           {supported && (
             <div className="px-6 pb-5 flex items-center justify-center gap-2">
               {scene?.text && (
@@ -237,14 +231,14 @@ export function StoryViewer({ story, onBack, onEdit }) {
                       : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                   }`}
                 >
-                  {speaking ? <><span>⏹</span> Stop</> : <><span>🔊</span> Read Aloud</>}
+                  {speaking ? <><span>⏹</span> {t('stop')}</> : <><span>🔊</span> {t('readAloud')}</>}
                 </button>
               )}
               {voices.length > 0 && (
                 <button
                   onClick={() => setShowVoicePicker(true)}
                   className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium text-sm transition-all active:scale-95 shadow"
-                  title="Change voice"
+                  title={t('changeVoice')}
                 >
                   <span>🎙️</span>
                   <span className="max-w-20 truncate">{currentVoiceName}</span>
@@ -273,7 +267,7 @@ export function StoryViewer({ story, onBack, onEdit }) {
                 onClick={handleRestart}
                 className="flex-1 h-14 rounded-2xl bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
               >
-                <span>↺</span> Restart
+                <span>↺</span> {t('restart')}
               </button>
             ) : (
               supported && (
@@ -285,7 +279,7 @@ export function StoryViewer({ story, onBack, onEdit }) {
                       : 'bg-green-500 hover:bg-green-600 text-white'
                   }`}
                 >
-                  {autoPlay ? <><span>⏸</span> Pause</> : <><span>▶</span> Auto-Read</>}
+                  {autoPlay ? <><span>⏸</span> {t('pause')}</> : <><span>▶</span> {t('autoRead')}</>}
                 </button>
               )
             )}
@@ -301,13 +295,13 @@ export function StoryViewer({ story, onBack, onEdit }) {
         </div>
       </div>
 
-      {/* Voice Picker Modal */}
       {showVoicePicker && (
         <VoicePicker
           voices={voices}
           selectedVoice={selectedVoice}
           onSelect={setSelectedVoice}
           onClose={() => setShowVoicePicker(false)}
+          t={t}
         />
       )}
     </div>

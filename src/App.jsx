@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useStories } from './hooks/useStories'
+import { useLanguage } from './hooks/useLanguage'
 import { StoryList } from './components/StoryList'
 import { StoryEditor } from './components/StoryEditor'
 import { StoryViewer } from './components/StoryViewer'
 
-// Simple single-page router: 'list' | 'edit' | 'view'
 function App() {
   const [screen, setScreen] = useState('list')
   const [activeId, setActiveId] = useState(null)
+
+  const { lang, changeLanguage, t } = useLanguage()
 
   const {
     stories,
@@ -53,6 +55,7 @@ function App() {
         onUpdateScene={updateScene}
         onDeleteScene={deleteScene}
         onReorderScenes={reorderScenes}
+        t={t}
       />
     )
   }
@@ -63,6 +66,7 @@ function App() {
         story={activeStory}
         onBack={handleBack}
         onEdit={() => setScreen('edit')}
+        t={t}
       />
     )
   }
@@ -74,6 +78,9 @@ function App() {
       onOpen={handleOpen}
       onView={handleView}
       onDelete={deleteStory}
+      lang={lang}
+      onChangeLang={changeLanguage}
+      t={t}
     />
   )
 }
