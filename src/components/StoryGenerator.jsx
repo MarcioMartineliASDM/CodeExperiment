@@ -57,11 +57,19 @@ export function StoryGenerator({ lang, t, onBack, onSave }) {
     setStep('generating-text')
     setErrorMsg('')
 
+    // Try up to 2 times in case Pollinations is slow
     let story
-    try {
-      story = await generateStory(prompt.trim(), lang, numScenes)
-    } catch (err) {
-      setErrorMsg(err.message)
+    let lastErr
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        story = await generateStory(prompt.trim(), lang, numScenes)
+        break
+      } catch (err) {
+        lastErr = err
+      }
+    }
+    if (!story) {
+      setErrorMsg(lastErr?.message ?? 'Unknown error')
       setStep('error')
       return
     }
@@ -182,6 +190,7 @@ export function StoryGenerator({ lang, t, onBack, onSave }) {
             <div className="text-6xl animate-bounce">✍️</div>
             <p className="text-xl font-bold text-gray-700">{t('generatingText')}</p>
             <p className="text-gray-400 text-sm text-center">{t('generatingTextSub')}</p>
+            <p className="text-gray-300 text-xs text-center mt-2">This can take up to 30 seconds…</p>
           </div>
         )}
 
