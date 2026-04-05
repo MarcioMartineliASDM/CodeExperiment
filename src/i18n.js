@@ -56,6 +56,8 @@ export const translations = {
     onDevice: 'On device',
     noVoicesFound: 'No voices found',
     current: 'Current',
+    deviceVoices: 'Device Voices',
+    aiVoicesDesc: 'High-quality AI voices — requires internet connection',
 
     // AI Generator
     generateWithAI: 'Create with AI',
@@ -126,6 +128,8 @@ export const translations = {
     onDevice: 'En dispositivo',
     noVoicesFound: 'No se encontraron voces',
     current: 'Actual',
+    deviceVoices: 'Voces del Dispositivo',
+    aiVoicesDesc: 'Voces de IA de alta calidad — requiere conexión a internet',
 
     // AI Generator
     generateWithAI: 'Crear con IA',
@@ -196,6 +200,8 @@ export const translations = {
     onDevice: 'No dispositivo',
     noVoicesFound: 'Nenhuma voz encontrada',
     current: 'Atual',
+    deviceVoices: 'Vozes do Dispositivo',
+    aiVoicesDesc: 'Vozes de IA de alta qualidade — requer conexão à internet',
 
     // AI Generator
     generateWithAI: 'Criar com IA',

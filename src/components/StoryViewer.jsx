@@ -1,15 +1,65 @@
 import { useState, useEffect } from 'react'
-import { useSpeech } from '../hooks/useSpeech'
+import { useSpeech, AI_VOICES } from '../hooks/useSpeech'
+
+// Handles loading shimmer, error state and retry for a single scene image
+function SceneImage({ imageUrl, imageAlt, emoji }) {
+  const [status, setStatus] = useState('loading')
+  const [src, setSrc] = useState(imageUrl)
+
+  function retry() {
+    // Cache-bust by appending a timestamp
+    setStatus('loading')
+    setSrc(`${imageUrl}${imageUrl.includes('?') ? '&' : '?'}_r=${Date.now()}`)
+  }
+
+  if (!imageUrl) {
+    return (
+      <div className="bg-gradient-to-br from-purple-100 to-blue-100 h-48 flex items-center justify-center">
+        <span className="text-8xl">{emoji}</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative bg-gray-100 min-h-48">
+      {status === 'loading' && (
+        <div className="absolute inset-0 bg-purple-50 animate-pulse flex items-center justify-center">
+          <span className="text-4xl opacity-30">🎨</span>
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gray-50">
+          <span className="text-4xl">🖼️</span>
+          <button
+            onClick={retry}
+            className="text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold px-4 py-2 rounded-xl transition-all"
+          >
+            ↺ Retry image
+          </button>
+        </div>
+      )}
+      <img
+        key={src}
+        src={src}
+        alt={imageAlt || 'Scene image'}
+        onLoad={() => setStatus('loaded')}
+        onError={() => setStatus('error')}
+        className={`w-full max-h-72 object-contain transition-opacity duration-300 ${status === 'loaded' ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
+      />
+    </div>
+  )
+}
 
 function VoicePicker({ voices, selectedVoice, onSelect, onClose, t }) {
   const [search, setSearch] = useState('')
+  const [tab, setTab] = useState(selectedVoice.startsWith('ai:') ? 'ai' : 'browser')
 
-  const filtered = voices.filter(v =>
+  const filteredBrowser = voices.filter(v =>
     v.name.toLowerCase().includes(search.toLowerCase()) ||
     v.lang.toLowerCase().includes(search.toLowerCase())
   )
 
-  const grouped = filtered.reduce((acc, v) => {
+  const grouped = filteredBrowser.reduce((acc, v) => {
     const lang = v.lang.split('-')[0].toUpperCase()
     if (!acc[lang]) acc[lang] = []
     acc[lang].push(v)
@@ -19,7 +69,7 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose, t }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[80vh] flex flex-col"
+        className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[85vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-4 border-b border-gray-100">
@@ -27,58 +77,104 @@ function VoicePicker({ voices, selectedVoice, onSelect, onClose, t }) {
             <h2 className="text-lg font-bold text-gray-800">{t('chooseVoice')}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
           </div>
-          <input
-            autoFocus
-            type="text"
-            placeholder={t('searchVoices')}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
-          />
+
+          {/* Tab switcher */}
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setTab('ai')}
+              className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all ${tab === 'ai' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              ✨ AI Voices
+            </button>
+            <button
+              onClick={() => setTab('browser')}
+              className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all ${tab === 'browser' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              🔊 {t('deviceVoices')}
+            </button>
+          </div>
+
+          {tab === 'browser' && (
+            <input
+              type="text"
+              placeholder={t('searchVoices')}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
+            />
+          )}
         </div>
 
         <div className="overflow-y-auto flex-1 p-3">
-          <button
-            onClick={() => { onSelect(''); onClose() }}
-            className={`w-full text-left px-4 py-3 rounded-xl mb-1 font-medium transition-colors ${
-              selectedVoice === '' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100 text-gray-600'
-            }`}
-          >
-            🔊 {t('defaultVoice')}
-            {selectedVoice === '' && (
-              <span className="ml-2 text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full">{t('current')}</span>
-            )}
-          </button>
-
-          {Object.entries(grouped).sort().map(([lang, langVoices]) => (
-            <div key={lang} className="mb-3">
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wide px-2 mb-1">{lang}</div>
-              {langVoices.map(voice => (
-                <button
-                  key={voice.name}
-                  onClick={() => { onSelect(voice.name); onClose() }}
-                  className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-colors ${
-                    selectedVoice === voice.name
-                      ? 'bg-purple-100 text-purple-700 font-semibold'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm">{voice.name}</span>
-                      {voice.localService && (
-                        <span className="ml-2 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">{t('onDevice')}</span>
-                      )}
+          {tab === 'ai' && (
+            <>
+              <p className="text-xs text-gray-400 px-2 mb-3">{t('aiVoicesDesc')}</p>
+              {AI_VOICES.map(voice => {
+                const key = `ai:${voice.id}`
+                return (
+                  <button
+                    key={voice.id}
+                    onClick={() => { onSelect(key); onClose() }}
+                    className={`w-full text-left px-4 py-3 rounded-xl mb-2 transition-colors ${
+                      selectedVoice === key ? 'bg-purple-100 text-purple-700 font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold">{voice.name}</span>
+                        <span className="ml-2 text-xs text-gray-400">{voice.desc}</span>
+                      </div>
+                      {selectedVoice === key && <span className="text-purple-500">✓</span>}
                     </div>
-                    {selectedVoice === voice.name && <span className="text-purple-500">✓</span>}
-                  </div>
-                </button>
-              ))}
-            </div>
-          ))}
+                  </button>
+                )
+              })}
+            </>
+          )}
 
-          {filtered.length === 0 && (
-            <p className="text-center text-gray-400 py-8">{t('noVoicesFound')}</p>
+          {tab === 'browser' && (
+            <>
+              <button
+                onClick={() => { onSelect(''); onClose() }}
+                className={`w-full text-left px-4 py-3 rounded-xl mb-1 font-medium transition-colors ${
+                  selectedVoice === '' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100 text-gray-600'
+                }`}
+              >
+                🔊 {t('defaultVoice')}
+                {selectedVoice === '' && (
+                  <span className="ml-2 text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full">{t('current')}</span>
+                )}
+              </button>
+
+              {Object.entries(grouped).sort().map(([lang, langVoices]) => (
+                <div key={lang} className="mb-3">
+                  <div className="text-xs font-bold text-gray-400 uppercase tracking-wide px-2 mb-1">{lang}</div>
+                  {langVoices.map(voice => (
+                    <button
+                      key={voice.name}
+                      onClick={() => { onSelect(voice.name); onClose() }}
+                      className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-colors ${
+                        selectedVoice === voice.name ? 'bg-purple-100 text-purple-700 font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm">{voice.name}</span>
+                          {voice.localService && (
+                            <span className="ml-2 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">{t('onDevice')}</span>
+                          )}
+                        </div>
+                        {selectedVoice === voice.name && <span className="text-purple-500">✓</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ))}
+
+              {filteredBrowser.length === 0 && (
+                <p className="text-center text-gray-400 py-8">{t('noVoicesFound')}</p>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -90,7 +186,7 @@ export function StoryViewer({ story, translating = false, onBack, onEdit, t }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [autoPlay, setAutoPlay] = useState(false)
   const [showVoicePicker, setShowVoicePicker] = useState(false)
-  const { speak, stop, speaking, supported, voices, selectedVoice, setSelectedVoice } = useSpeech()
+  const { speak, stop, speaking, supported, voices, selectedVoice, setSelectedVoice, isAiVoice, currentAiVoice } = useSpeech()
 
   const scene = story.scenes[currentIndex]
   const isFirst = currentIndex === 0
@@ -147,9 +243,11 @@ export function StoryViewer({ story, translating = false, onBack, onEdit, t }) {
     setCurrentIndex(0)
   }
 
-  const currentVoiceName = selectedVoice
-    ? voices.find(v => v.name === selectedVoice)?.name?.split(' ')[0] ?? 'Custom'
-    : t('defaultVoice').split(' ')[0]
+  const currentVoiceName = isAiVoice
+    ? `✨ ${currentAiVoice?.name ?? 'AI'}`
+    : selectedVoice
+      ? voices.find(v => v.name === selectedVoice)?.name?.split(' ')[0] ?? 'Custom'
+      : t('defaultVoice').split(' ')[0]
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-100 to-purple-100 flex flex-col">
@@ -198,19 +296,11 @@ export function StoryViewer({ story, translating = false, onBack, onEdit, t }) {
       {/* Main Scene */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 gap-6">
         <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden">
-          {scene?.imageUrl ? (
-            <div className="bg-gray-50">
-              <img
-                src={scene.imageUrl}
-                alt={scene.imageAlt || 'Scene image'}
-                className="w-full max-h-72 object-contain"
-              />
-            </div>
-          ) : (
-            <div className="bg-gradient-to-br from-purple-100 to-blue-100 h-48 flex items-center justify-center">
-              <span className="text-8xl">{story.emoji}</span>
-            </div>
-          )}
+          <SceneImage
+            imageUrl={scene?.imageUrl}
+            imageAlt={scene?.imageAlt}
+            emoji={story.emoji}
+          />
 
           <div className="p-6 text-center">
             {translating ? (

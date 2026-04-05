@@ -1,6 +1,30 @@
 import { useState } from 'react'
 import { generateStory, buildImageUrl } from '../services/ai'
 
+function GeneratorSceneImage({ src, alt }) {
+  const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
+  const [key, setKey] = useState(0)
+  return (
+    <div className="relative w-full h-52 bg-orange-50">
+      {!loaded && !error && <div className="absolute inset-0 animate-pulse bg-orange-100 flex items-center justify-center text-3xl opacity-30">🎨</div>}
+      {error && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+          <span className="text-3xl">🖼️</span>
+          <button onClick={() => { setError(false); setLoaded(false); setKey(k => k + 1) }}
+            className="text-sm bg-orange-100 hover:bg-orange-200 text-orange-700 px-3 py-1.5 rounded-xl font-semibold">
+            ↺ Retry
+          </button>
+        </div>
+      )}
+      <img key={key} src={src} alt={alt}
+        onLoad={() => setLoaded(true)} onError={() => setError(true)}
+        className={`w-full h-52 object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+      />
+    </div>
+  )
+}
+
 const SCENE_OPTIONS = [3, 4, 5, 6, 7]
 
 const EXAMPLE_PROMPTS = {
@@ -183,15 +207,7 @@ export function StoryGenerator({ lang, t, onBack, onSave }) {
             {draft.scenes.map((scene, i) => (
               <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden">
                 {scene.imageUrl ? (
-                  <div className="relative w-full h-52 bg-orange-50">
-                    <div className="absolute inset-0 animate-pulse bg-orange-100" />
-                    <img
-                      src={scene.imageUrl}
-                      alt={scene.imageAlt}
-                      className="relative w-full h-52 object-cover"
-                      onLoad={e => e.target.previousSibling.remove()}
-                    />
-                  </div>
+                  <GeneratorSceneImage src={scene.imageUrl} alt={scene.imageAlt} />
                 ) : (
                   <div className="h-32 bg-orange-50 flex items-center justify-center text-gray-300 text-sm">
                     {t('noImage')}
